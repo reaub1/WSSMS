@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  react-app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile  # Utilise le Dockerfile pour la construction
+    ports:
+      - "3000:3000"  # Mappe le port 3000 du conteneur sur le port 3000 de l'hôte
+    environment:
+      - NODE_ENV=development  # Définit l'environnement en mode développement
+    volumes:
+      - .:/app  # Montre ton répertoire local dans le conteneur pour que les changements soient instantanés
+      - /app/node_modules  # Evite des conflits avec node_modules local
+    networks:
+      - app-network
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2019-latest  # Utilise l'image officielle de SQL Server
+    environment:
+      - ACCEPT_EULA=Y  # Accepte le contrat de licence
+      - SA_PASSWORD=YourStrong!Passw0rd  # Définit le mot de passe pour l'utilisateur SA
+    ports:
+      - "1433:1433"  # Mappe le port 1433 du conteneur sur le port 1433 de l'hôte
+    volumes:
+      - sqlserver-data:/var/opt/mssql  # Persiste les données de SQL Server
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  sqlserver-data:
+    driver: local
