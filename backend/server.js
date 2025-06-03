@@ -51,15 +51,33 @@ app.get('/api/data', async (req, res) => {
   }
 });
 
+app.post('/api/connect', async (req, res) => {
+  const { username, password } = req.body;
+
+  console.log('Tentative de connexion avec les identifiants:', { username, password });
+
+  const config = {
+    user: username,
+    password: password,
+    server: dbConfig.server,
+    database: dbConfig.database,
+    options: {
+      encrypt: true,
+      trustServerCertificate: true 
+    }
+  };
+
+  try {
+    await sql.connect(config);
+    console.log('Connexion réussie à la base de données SQL Server');
+    res.json({ success: true, message: 'Connecté à la base de données SQL Server' });
+  } catch (err) {
+    console.error('Erreur de connexion à la base de données:', err);
+    res.status(500).json({ success: false, message: 'Erreur de connexion à la base de données.' });
+  }
+});
+
 app.listen(port, () => {
   console.log(`🚀 Serveur backend démarré : http://localhost:${port}`);
 });
 
-app.post('/api/login', (req, res) => {
-  const { username, password } = req.body;
-  if (username === 'admin' && password === '1234') {
-    res.json({ success: true });
-  } else {
-    res.json({ success: false, message: 'Identifiants incorrects.' });
-  }
-});

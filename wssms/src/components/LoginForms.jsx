@@ -16,9 +16,11 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:3001/api/login', credentials);
+      console.log('Tentative de connexion avec les identifiants:', credentials);
+      const response = await axios.post('http://localhost:3001/api/connect', credentials);
       if (response.data.success) {
         alert('Connexion réussie !');
+        console.log('Réponse du serveur:', response.data);
         // Redirection ou gestion de session ici
       } else {
         setErrorMsg(response.data.message || 'Erreur de connexion.');
