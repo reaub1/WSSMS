@@ -84,6 +84,43 @@ app.get('/api/databases', async (req, res) => {
   }
 });
 
+app.post('/api/create-databases', async (req, res) => {
+  const { databaseName } = req.body;
+
+  if (!dynamicDbConfig) {
+    return res.status(401).json({ success: false, message: 'Non connecté à la base de données.' });
+  }
+
+  if (!databaseName || databaseName.trim() === '') {
+    return res.status(400).json({ success: false, message: 'Le nom de la base de données est requis.' });
+  }
+
+  try {
+    await sql.connect(dynamicDbConfig);
+
+    const dbExists = await sql.query`SELECT name FROM sys.databases WHERE name = ${databaseName}`;
+    if (dbExists.recordset.length > 0) {
+      return res.status(400).json({ success: false, message: `La base de données '${databaseName}' existe déjà.` });
+    }
+
+    const query = `CREATE DATABASE [${databaseName}]`;
+    await sql.query(query);
+
+    res.json({ success: true, message: `Base de données '${databaseName}' créée avec succès.` });
+  } catch (error) {
+    console.error('Erreur lors de la création de la base de données:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la création de la base de données.',
+      error: error.message,
+    });
+  } finally {
+    if (sql.connected) {
+      await sql.close();
+    }
+  }
+});
+
 app.get('/api/tables', async (req, res) => {
   const { database } = req.query;
 
