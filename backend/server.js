@@ -60,6 +60,29 @@ app.post('/api/disconnect', (req, res) => {
   res.json({ success: true, message: 'Déconnecté avec succès.' });
 });
 
+app.get('/api/databases', async (req, res) => {
+  if (!dynamicDbConfig) {
+    return res.status(401).json({ success: false, message: 'Non connecté à la base de données.' });
+  }
+
+  try {
+    await sql.connect(dynamicDbConfig);
+    const result = await sql.query`SELECT name FROM sys.databases WHERE name NOT IN ('tempdb', 'model', 'msdb')`;
+    res.json({ success: true, databases: result.recordset });
+  } catch (error) {
+    console.error('Erreur lors de la récupération des bases de données:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la récupération des bases de données.',
+      error: error.message,
+    });
+  } finally {
+    if (sql.connected) {
+      await sql.close();
+    }
+  }
+});
+
 app.get('/api/tables', async (req, res) => {
   if (!dynamicDbConfig) {
     return res.status(401).json({ success: false, message: 'Non connecté à la base de données.' });
