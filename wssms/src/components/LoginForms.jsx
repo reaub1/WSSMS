@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import TablesList from './TablesList';
 
 const Login = () => {
   const [credentials, setCredentials] = useState({ username: '', password: '' });
   const [errorMsg, setErrorMsg] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false); 
 
   const handleChange = (e) => {
     setCredentials({ ...credentials, [e.target.name]: e.target.value });
@@ -21,7 +23,7 @@ const Login = () => {
       if (response.data.success) {
         alert('Connexion réussie !');
         console.log('Réponse du serveur:', response.data);
-        // Redirection ou gestion de session ici
+        setIsLoggedIn(true);
       } else {
         setErrorMsg(response.data.message || 'Erreur de connexion.');
       }
@@ -31,6 +33,10 @@ const Login = () => {
       setLoading(false);
     }
   };
+
+  if (isLoggedIn) {
+    return <TablesList />;
+  }
 
   return (
     <div className="login-container" style={styles.container}>

@@ -81,3 +81,38 @@ app.listen(port, () => {
   console.log(`🚀 Serveur backend démarré : http://localhost:${port}`);
 });
 
+app.get('/api/tables', async (req, res) => {
+  try {
+    await sql.connect(dbConfig);
+    const result = await sql.query`SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'`;
+    res.json({ success: true, tables: result.recordset });
+  } catch (error) {
+    console.error('Erreur lors de la récupération des tables:', error);
+    res.status(500).json({
+      success: false,
+      message: '❌ Erreur lors de la récupération des tables.',
+      error: error.message
+    });
+  } finally {
+    sql.close();
+  }
+});
+
+app.post('/api/query', async (req, res) => {
+  const { query } = req.body;
+
+  try {
+    await sql.connect(dbConfig);
+    const result = await sql.query(query);
+    res.json({ success: true, data: result.recordset });
+  } catch (error) {
+    console.error('Erreur lors de l\'exécution de la requête:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de l\'exécution de la requête.',
+      error: error.message,
+    });
+  } finally {
+    sql.close();
+  }
+});
