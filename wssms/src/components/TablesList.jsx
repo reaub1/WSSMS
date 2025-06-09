@@ -3,6 +3,7 @@ import axios from 'axios';
 import QueryExecutor from './QueryExecutor';
 import SavedQueries from './SavedQueries';
 import AddUserForm from './AddUserForm';
+import Login from './LoginForms';
 
 const TablesList = () => {
   const [tables, setTables] = useState([]);
@@ -12,6 +13,7 @@ const TablesList = () => {
   const [queryToExecute, setQueryToExecute] = useState(null);
   const [isSavedQuery, setIsSavedQuery] = useState(false);
   const [showAddUserForm, setShowAddUserForm] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(true);
 
   useEffect(() => {
     const fetchTables = async () => {
@@ -31,6 +33,20 @@ const TablesList = () => {
 
     fetchTables();
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      await axios.post('http://localhost:3001/api/disconnect');
+      setIsLoggedIn(false);
+    } catch (err) {
+      console.error('Erreur lors de la déconnexion:', err);
+      alert('Erreur lors de la déconnexion. Veuillez réessayer.');
+    }
+  };
+
+  if (!isLoggedIn) {
+    return <Login />;
+  }
 
   if (loading) {
     return <p>Chargement des tables...</p>;
@@ -59,7 +75,15 @@ const TablesList = () => {
 
   return (
     <div style={styles.container}>
-      <h2 style={styles.title}>Liste des Tables</h2>
+      <div style={styles.header}>
+        <h2 style={styles.title}>Liste des Tables</h2>
+        <button
+          style={styles.logoutButton}
+          onClick={handleLogout}
+        >
+          Déconnexion
+        </button>
+      </div>
       <button
         style={styles.addUserButton}
         onClick={() => setShowAddUserForm(true)}
@@ -104,6 +128,12 @@ const styles = {
     width: '400px',
     margin: '2rem auto',
   },
+  header: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '1rem',
+  },
   title: {
     textAlign: 'center',
     marginBottom: '1rem',
@@ -135,6 +165,14 @@ const styles = {
     borderRadius: '5px',
     cursor: 'pointer',
     marginBottom: '1rem',
+  },
+  logoutButton: {
+    padding: '0.5rem 1rem',
+    backgroundColor: '#d9534f',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '5px',
+    cursor: 'pointer',
   },
 };
 
