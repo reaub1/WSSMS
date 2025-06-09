@@ -31,7 +31,9 @@ app.get('/api/test-connection', async (req, res) => {
       error: error.message
     });
   } finally {
-    sql.close();
+    if (sql.connected) {
+      await sql.close();
+    }
   }
 });
 
@@ -91,10 +93,12 @@ app.get('/api/tables', async (req, res) => {
     res.status(500).json({
       success: false,
       message: '❌ Erreur lors de la récupération des tables.',
-      error: error.message
+      error: error.message,
     });
   } finally {
-    sql.close();
+    if (sql.connected) {
+      await sql.close();
+    }
   }
 });
 
@@ -113,6 +117,69 @@ app.post('/api/query', async (req, res) => {
       error: error.message,
     });
   } finally {
-    sql.close();
+    if (sql.connected) {
+      await sql.close();
+    }
+  }
+});
+
+app.post('/api/save-query', async (req, res) => {
+  const { query } = req.body;
+
+  if (!query) {
+    return res.status(400).json({ success: false, message: 'La requête est vide.' });
+  }
+
+  try {
+    await sql.connect(dbConfig);
+    await sql.query`INSERT INTO SavedQueries (query) VALUES (${query})`;
+    res.json({ success: true, message: 'Requête sauvegardée avec succès.' });
+  } catch (error) {
+    console.error('Erreur lors de la sauvegarde de la requête:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la sauvegarde de la requête.',
+      error: error.message,
+    });
+  } finally {
+    if (sql.connected) {
+      await sql.close();
+    }
+  }
+});
+
+app.get('/api/saved-queries', async (req, res) => {
+  try {
+    await sql.connect(dbConfig);
+    const result = await sql.query`SELECT TOP 5 id, query, created_at FROM SavedQueries ORDER BY created_at DESC`;
+    res.json({ success: true, queries: result.recordset });
+  } catch (error) {
+    console.error('Erreur lors de la récupération des requêtes sauvegardées:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la récupération des requêtes sauvegardées.',
+      error: error.message,
+    });
+  } finally {
+    if (sql.connected) {
+      await sql.close();
+    }
+  }
+});
+
+app.delete('/api/saved-queries/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await sql.connect(dbConfig);
+    await sql.query`DELETE FROM SavedQueries WHERE id = ${id}`;
+    res.json({ success: true, message: 'Requête supprimée avec succès.' });
+  } catch (error) {
+    console.error('Erreur lors de la suppression de la requête:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la suppression de la requête.',
+      error: error.message,
+    });
   }
 });

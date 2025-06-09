@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import QueryExecutor from './QueryExecutor';
+import SavedQueries from './SavedQueries';
 
 const TablesList = () => {
   const [tables, setTables] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedTable, setSelectedTable] = useState(null);
+  const [queryToExecute, setQueryToExecute] = useState(null);
+  const [isSavedQuery, setIsSavedQuery] = useState(false);
 
   useEffect(() => {
     const fetchTables = async () => {
@@ -35,11 +38,15 @@ const TablesList = () => {
     return <p style={{ color: 'red' }}>{error}</p>;
   }
 
-  if (selectedTable) {
+  if (queryToExecute) {
     return (
       <QueryExecutor
-        tableName={selectedTable}
-        onBack={() => setSelectedTable(null)}
+        tableName={isSavedQuery ? null : selectedTable} 
+        query={queryToExecute}
+        onBack={() => {
+          setQueryToExecute(null);
+          setIsSavedQuery(false);
+        }}
       />
     );
   }
@@ -53,13 +60,24 @@ const TablesList = () => {
             {table.TABLE_NAME}
             <button
               style={styles.button}
-              onClick={() => setSelectedTable(table.TABLE_NAME)}
+              onClick={() => {
+                setSelectedTable(table.TABLE_NAME);
+                setQueryToExecute(`SELECT * FROM ${table.TABLE_NAME}`); 
+                setIsSavedQuery(false);
+              }}
             >
               Exécuter des requêtes
             </button>
           </li>
         ))}
       </ul>
+      <SavedQueries
+        onExecute={(query) => {
+          setQueryToExecute(query);
+          setSelectedTable(null);
+          setIsSavedQuery(true);
+        }}
+      />
     </div>
   );
 };
