@@ -7,6 +7,7 @@ import Login from './LoginForms';
 
 const TablesList = () => {
   const [tables, setTables] = useState([]);
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedTable, setSelectedTable] = useState(null);
@@ -31,7 +32,21 @@ const TablesList = () => {
       }
     };
 
+    const fetchUsers = async () => {
+      try {
+        const response = await axios.get('http://localhost:3001/api/sql-users');
+        if (response.data.success) {
+          setUsers(response.data.users);
+        } else {
+          setError(response.data.message || 'Erreur lors de la récupération des utilisateurs SQL.');
+        }
+      } catch (err) {
+        setError('Erreur serveur : impossible de récupérer les utilisateurs SQL.');
+      }
+    };
+
     fetchTables();
+    fetchUsers();
   }, []);
 
   const handleLogout = async () => {
@@ -44,12 +59,22 @@ const TablesList = () => {
     }
   };
 
+  const handleDeleteUser = async (username) => {
+    try {
+      await axios.delete(`http://localhost:3001/api/sql-users/${username}`);
+      setUsers(users.filter((user) => user.name !== username)); 
+    } catch (err) {
+      console.error('Erreur lors de la suppression de l\'utilisateur SQL:', err);
+      alert('Erreur lors de la suppression de l\'utilisateur SQL.');
+    }
+  };
+
   if (!isLoggedIn) {
     return <Login />;
   }
 
   if (loading) {
-    return <p>Chargement des tables...</p>;
+    return <p>Chargement des données...</p>;
   }
 
   if (error) {
@@ -107,13 +132,20 @@ const TablesList = () => {
           </li>
         ))}
       </ul>
-      <SavedQueries
-        onExecute={(query) => {
-          setQueryToExecute(query);
-          setSelectedTable(null);
-          setIsSavedQuery(true);
-        }}
-      />
+      <h2 style={styles.title}>Utilisateurs SQL</h2>
+      <ul style={styles.list}>
+        {users.map((user, index) => (
+          <li key={index} style={styles.listItem}>
+            {user.name}
+            <button
+              style={styles.deleteButton}
+              onClick={() => handleDeleteUser(user.name)}
+            >
+              Supprimer
+            </button>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 };
@@ -152,6 +184,14 @@ const styles = {
   button: {
     padding: '0.3rem 0.6rem',
     backgroundColor: '#0078d4',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '5px',
+    cursor: 'pointer',
+  },
+  deleteButton: {
+    padding: '0.3rem 0.6rem',
+    backgroundColor: '#d9534f',
     color: '#fff',
     border: 'none',
     borderRadius: '5px',

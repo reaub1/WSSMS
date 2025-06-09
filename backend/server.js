@@ -208,17 +208,25 @@ app.post('/api/sql-users', async (req, res) => {
   }
 
   try {
-    console.log('Configuration de la base de données:', dynamicDbConfig);
     await sql.connect(dynamicDbConfig);
 
-    const createLoginQuery = `CREATE LOGIN [${username}] WITH PASSWORD = '${password}'`;
-    const createUserQuery = `CREATE USER [${username}] FOR LOGIN [${username}]`;
+    const loginExists = await sql.query`SELECT name FROM sys.sql_logins WHERE name = ${username}`;
+    if (loginExists.recordset.length > 0) {
+      return res.status(400).json({ success: false, message: `Le login '${username}' existe déjà.` });
+    }
 
+    const userExists = await sql.query`SELECT name FROM sys.database_principals WHERE name = ${username}`;
+    if (userExists.recordset.length > 0) {
+      return res.status(400).json({ success: false, message: `L'utilisateur '${username}' existe déjà dans la base de données.` });
+    }
+
+    const createLoginQuery = `CREATE LOGIN [${username}] WITH PASSWORD = '${password}'`;
     await sql.query(createLoginQuery);
+    
+    const createUserQuery = `CREATE USER [${username}] FOR LOGIN [${username}]`;
     await sql.query(createUserQuery);
 
-    res.json({ success: true, message: 'Utilisateur SQL ajouté avec succès.' });
-    sql.close();
+    res.json({ success: true, message: `Utilisateur SQL '${username}' créé avec succès.` });
   } catch (error) {
     console.error('Erreur lors de l\'ajout de l\'utilisateur SQL:', error);
     res.status(500).json({
@@ -226,6 +234,65 @@ app.post('/api/sql-users', async (req, res) => {
       message: 'Erreur lors de l\'ajout de l\'utilisateur SQL.',
       error: error.message,
     });
+  } finally {
+    if (sql.connected) {
+      await sql.close();
+    }
+  }
+});
+app.get('/api/sql-users', async (req, res) => {
+  if (!dynamicDbConfig) {
+    return res.status(401).json({ success: false, message: 'Non connecté à la base de données.' });
+  }
+
+  try {
+    await sql.connect(dynamicDbConfig);
+    const result = await sql.query`SELECT name FROM sys.sql_logins WHERE is_disabled = 0`;
+    res.json({ success: true, users: result.recordset });
+  } catch (error) {
+    console.error('Erreur lors de la récupération des utilisateurs SQL:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la récupération des utilisateurs SQL.',
+      error: error.message,
+    });
+  } finally {
+    if (sql.connected) {
+      await sql.close();
+    }
+  }
+});
+
+app.delete('/api/sql-users/:username', async (req, res) => {
+  const { username } = req.params;
+
+  if (!dynamicDbConfig) {
+    return res.status(401).json({ success: false, message: 'Non connecté à la base de données.' });
+  }
+
+  try {
+    await sql.connect(dynamicDbConfig);
+
+    const result = await sql.query`SELECT name FROM sys.sql_logins WHERE name = ${username}`;
+    if (result.recordset.length === 0) {
+      return res.status(404).json({ success: false, message: `Le login '${username}' n'existe pas.` });
+    }
+
+    const dropLoginQuery = `DROP LOGIN [${username}]`;
+    await sql.query(dropLoginQuery);
+
+    res.json({ success: true, message: `Utilisateur SQL '${username}' supprimé avec succès.` });
+  } catch (error) {
+    console.error('Erreur lors de la suppression de l\'utilisateur SQL:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la suppression de l\'utilisateur SQL.',
+      error: error.message,
+    });
+  } finally {
+    if (sql.connected) {
+      await sql.close();
+    }
   }
 });
 
