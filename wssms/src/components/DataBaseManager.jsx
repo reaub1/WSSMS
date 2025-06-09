@@ -91,8 +91,12 @@ const DatabaseManager = () => {
     }
   };
 
+  const handleBack = () => {
+    setSelectedDatabase(null);
+  };
+
   if (selectedDatabase) {
-    return <TablesList database={selectedDatabase} />;
+    return <TablesList database={selectedDatabase} onBack={handleBack} />;
   }
 
   if (loading) {
@@ -144,7 +148,7 @@ const DatabaseManager = () => {
           ))}
         </ul>
       </div>
-  
+
       {/* Section Utilisateurs SQL */}
       <div style={styles.section}>
         <h2 style={styles.title}>Utilisateurs SQL</h2>
@@ -172,6 +176,7 @@ const DatabaseManager = () => {
     </div>
   );
 };
+
 const styles = {
   container: {
     padding: '2rem',

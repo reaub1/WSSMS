@@ -1,16 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import QueryExecutor from './QueryExecutor';
-import Login from './LoginForms';
 
-const TablesList = ({ database }) => {
+const TablesList = ({ database, onBack }) => {
   const [tables, setTables] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedTable, setSelectedTable] = useState(null);
   const [queryToExecute, setQueryToExecute] = useState(null);
   const [isSavedQuery, setIsSavedQuery] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
 
   useEffect(() => {
     const fetchTables = async () => {
@@ -36,20 +34,6 @@ const TablesList = ({ database }) => {
 
     fetchTables();
   }, [database]);
-
-  const handleLogout = async () => {
-    try {
-      await axios.post('http://localhost:3001/api/disconnect');
-      setIsLoggedIn(false);
-    } catch (err) {
-      console.error('Erreur lors de la déconnexion:', err);
-      alert('Erreur lors de la déconnexion. Veuillez réessayer.');
-    }
-  };
-
-  if (!isLoggedIn) {
-    return <Login />;
-  }
 
   if (loading) {
     return <p>Chargement des données...</p>;
@@ -77,10 +61,10 @@ const TablesList = ({ database }) => {
       <div style={styles.header}>
         <h2 style={styles.title}>Liste des Tables</h2>
         <button
-          style={styles.logoutButton}
-          onClick={handleLogout}
+          style={styles.backButton}
+          onClick={onBack}
         >
-          Déconnexion
+          Retour
         </button>
       </div>
       <ul style={styles.list}>
@@ -143,9 +127,9 @@ const styles = {
     borderRadius: '5px',
     cursor: 'pointer',
   },
-  logoutButton: {
+  backButton: {
     padding: '0.5rem 1rem',
-    backgroundColor: '#d9534f',
+    backgroundColor: '#0078d4',
     color: '#fff',
     border: 'none',
     borderRadius: '5px',
