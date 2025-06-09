@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import TablesList from './TablesList';
+import DatabaseManager from './DataBaseManager';
 
 const Login = () => {
   const [credentials, setCredentials] = useState({ username: '', password: '' });
   const [errorMsg, setErrorMsg] = useState('');
   const [loading, setLoading] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false); 
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const handleChange = (e) => {
     setCredentials({ ...credentials, [e.target.name]: e.target.value });
@@ -18,11 +18,8 @@ const Login = () => {
     setLoading(true);
 
     try {
-      console.log('Tentative de connexion avec les identifiants:', credentials);
       const response = await axios.post('http://localhost:3001/api/connect', credentials);
       if (response.data.success) {
-        alert('Connexion réussie !');
-        console.log('Réponse du serveur:', response.data);
         setIsLoggedIn(true);
       } else {
         setErrorMsg(response.data.message || 'Erreur de connexion.');
@@ -35,7 +32,7 @@ const Login = () => {
   };
 
   if (isLoggedIn) {
-    return <TablesList />;
+    return <DatabaseManager />;
   }
 
   return (

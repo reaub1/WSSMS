@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import QueryExecutor from './QueryExecutor';
-import SavedQueries from './SavedQueries';
 
-const TablesList = () => {
+const TablesList = ({ database, onBack }) => {
   const [tables, setTables] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -13,8 +12,14 @@ const TablesList = () => {
 
   useEffect(() => {
     const fetchTables = async () => {
+      if (!database) {
+        setError('Le nom de la base de données est requis.');
+        setLoading(false);
+        return;
+      }
+
       try {
-        const response = await axios.get('http://localhost:3001/api/tables');
+        const response = await axios.get(`http://localhost:3001/api/tables?database=${database}`);
         if (response.data.success) {
           setTables(response.data.tables);
         } else {
@@ -28,10 +33,10 @@ const TablesList = () => {
     };
 
     fetchTables();
-  }, []);
+  }, [database]);
 
   if (loading) {
-    return <p>Chargement des tables...</p>;
+    return <p>Chargement des données...</p>;
   }
 
   if (error) {
@@ -41,7 +46,7 @@ const TablesList = () => {
   if (queryToExecute) {
     return (
       <QueryExecutor
-        tableName={isSavedQuery ? null : selectedTable} 
+        tableName={isSavedQuery ? null : selectedTable}
         query={queryToExecute}
         onBack={() => {
           setQueryToExecute(null);
@@ -53,7 +58,15 @@ const TablesList = () => {
 
   return (
     <div style={styles.container}>
-      <h2 style={styles.title}>Liste des Tables</h2>
+      <div style={styles.header}>
+        <h2 style={styles.title}>Liste des Tables</h2>
+        <button
+          style={styles.backButton}
+          onClick={onBack}
+        >
+          Retour
+        </button>
+      </div>
       <ul style={styles.list}>
         {tables.map((table, index) => (
           <li key={index} style={styles.listItem}>
@@ -62,7 +75,7 @@ const TablesList = () => {
               style={styles.button}
               onClick={() => {
                 setSelectedTable(table.TABLE_NAME);
-                setQueryToExecute(`SELECT * FROM ${table.TABLE_NAME}`); 
+                setQueryToExecute(`SELECT * FROM ${table.TABLE_NAME}`);
                 setIsSavedQuery(false);
               }}
             >
@@ -71,13 +84,6 @@ const TablesList = () => {
           </li>
         ))}
       </ul>
-      <SavedQueries
-        onExecute={(query) => {
-          setQueryToExecute(query);
-          setSelectedTable(null);
-          setIsSavedQuery(true);
-        }}
-      />
     </div>
   );
 };
@@ -91,6 +97,12 @@ const styles = {
     boxShadow: '0 0 15px rgba(0,0,0,0.5)',
     width: '400px',
     margin: '2rem auto',
+  },
+  header: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '1rem',
   },
   title: {
     textAlign: 'center',
@@ -109,6 +121,14 @@ const styles = {
   },
   button: {
     padding: '0.3rem 0.6rem',
+    backgroundColor: '#0078d4',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '5px',
+    cursor: 'pointer',
+  },
+  backButton: {
+    padding: '0.5rem 1rem',
     backgroundColor: '#0078d4',
     color: '#fff',
     border: 'none',
