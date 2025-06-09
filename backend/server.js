@@ -121,6 +121,37 @@ app.post('/api/create-databases', async (req, res) => {
   }
 });
 
+app.delete('/api/databases/:databaseName', async (req, res) => {
+  const { databaseName } = req.params;
+
+  if (!dynamicDbConfig) {
+    return res.status(401).json({ success: false, message: 'Non connecté à la base de données.' });
+  }
+
+  try {
+    await sql.connect(dynamicDbConfig);
+
+    const dbExists = await sql.query`SELECT name FROM sys.databases WHERE name = ${databaseName}`;
+    if (dbExists.recordset.length === 0) {
+      return res.status(404).json({ success: false, message: `La base de données '${databaseName}' n'existe pas.` });
+    }
+
+    await sql.query`DROP DATABASE [${databaseName}]`;
+    res.json({ success: true, message: `Base de données '${databaseName}' supprimée avec succès.` });
+  } catch (error) {
+    console.error('Erreur lors de la suppression de la base de données:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la suppression de la base de données.',
+      error: error.message,
+    });
+  } finally {
+    if (sql.connected) {
+      await sql.close();
+    }
+  }
+});
+
 app.get('/api/tables', async (req, res) => {
   const { database } = req.query;
 

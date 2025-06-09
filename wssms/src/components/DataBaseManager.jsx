@@ -70,6 +70,17 @@ const DatabaseManager = () => {
     }
   };
 
+  const handleDeleteDatabase = async (databaseName) => {
+    try {
+      await axios.delete(`http://localhost:3001/api/databases/${databaseName}`);
+      setDatabases(databases.filter((db) => db.name !== databaseName));
+      alert(`Base de données '${databaseName}' supprimée avec succès.`);
+    } catch (err) {
+      console.error('Erreur lors de la suppression de la base de données:', err);
+      alert('Erreur lors de la suppression de la base de données.');
+    }
+  };
+
   const handleDeleteUser = async (username) => {
     try {
       await axios.delete(`http://localhost:3001/api/sql-users/${username}`);
@@ -114,18 +125,26 @@ const DatabaseManager = () => {
         <ul style={styles.list}>
           {databases.map((db, index) => (
             <li key={index} style={styles.listItem}>
-              {db.name}
-              <button
-                style={styles.button}
-                onClick={() => setSelectedDatabase(db.name)}
-              >
-                Ouvrir
-              </button>
+              <span>{db.name}</span>
+              <div style={styles.buttonGroup}>
+                <button
+                  style={styles.button}
+                  onClick={() => setSelectedDatabase(db.name)}
+                >
+                  Ouvrir
+                </button>
+                <button
+                  style={styles.deleteButton}
+                  onClick={() => handleDeleteDatabase(db.name)}
+                >
+                  Supprimer
+                </button>
+              </div>
             </li>
           ))}
         </ul>
       </div>
-
+  
       {/* Section Utilisateurs SQL */}
       <div style={styles.section}>
         <h2 style={styles.title}>Utilisateurs SQL</h2>
@@ -138,7 +157,7 @@ const DatabaseManager = () => {
         <ul style={styles.list}>
           {users.map((user, index) => (
             <li key={index} style={styles.listItem}>
-              {user.name}
+              <span>{user.name}</span>
               <button
                 style={styles.deleteButton}
                 onClick={() => handleDeleteUser(user.name)}
@@ -153,7 +172,6 @@ const DatabaseManager = () => {
     </div>
   );
 };
-
 const styles = {
   container: {
     padding: '2rem',
@@ -190,6 +208,7 @@ const styles = {
     border: 'none',
     borderRadius: '5px',
     cursor: 'pointer',
+    marginLeft: '0.5rem',
   },
   deleteButton: {
     padding: '0.3rem 0.6rem',
@@ -198,6 +217,7 @@ const styles = {
     border: 'none',
     borderRadius: '5px',
     cursor: 'pointer',
+    marginLeft: '0.5rem',
   },
   addUserButton: {
     padding: '0.5rem 1rem',
@@ -218,6 +238,10 @@ const styles = {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  buttonGroup: {
+    display: 'flex',
+    gap: '0.5rem',
   },
 };
 
