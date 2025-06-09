@@ -6,6 +6,7 @@ const QueryExecutor = ({ tableName, onBack }) => {
   const [results, setResults] = useState([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [saveMessage, setSaveMessage] = useState('');
 
   const handleExecute = async () => {
     setError('');
@@ -25,6 +26,20 @@ const QueryExecutor = ({ tableName, onBack }) => {
     }
   };
 
+  const handleSave = async () => {
+    setSaveMessage('');
+    try {
+      const response = await axios.post('http://localhost:3001/api/save-query', { query });
+      if (response.data.success) {
+        setSaveMessage('Requête sauvegardée avec succès.');
+      } else {
+        setSaveMessage('Erreur lors de la sauvegarde de la requête.');
+      }
+    } catch (err) {
+      setSaveMessage('Erreur serveur : impossible de sauvegarder la requête.');
+    }
+  };
+
   return (
     <div style={styles.container}>
       <button onClick={onBack} style={styles.backButton}>
@@ -37,10 +52,16 @@ const QueryExecutor = ({ tableName, onBack }) => {
         placeholder="Écrivez votre requête SQL ici..."
         style={styles.textarea}
       />
-      <button onClick={handleExecute} style={styles.button} disabled={loading}>
-        {loading ? 'Exécution...' : 'Exécuter'}
-      </button>
+      <div style={styles.buttonContainer}>
+        <button onClick={handleExecute} style={styles.button} disabled={loading}>
+          {loading ? 'Exécution...' : 'Exécuter'}
+        </button>
+        <button onClick={handleSave} style={styles.saveButton}>
+          Sauvegarder
+        </button>
+      </div>
       {error && <p style={styles.error}>{error}</p>}
+      {saveMessage && <p style={styles.saveMessage}>{saveMessage}</p>}
       {results.length > 0 && (
         <table style={styles.table}>
           <thead>
@@ -98,6 +119,10 @@ const styles = {
     backgroundColor: '#1e1e2f',
     color: '#fff',
   },
+  buttonContainer: {
+    display: 'flex',
+    justifyContent: 'space-between',
+  },
   button: {
     padding: '0.6rem',
     backgroundColor: '#0078d4',
@@ -106,8 +131,21 @@ const styles = {
     borderRadius: '5px',
     cursor: 'pointer',
   },
+  saveButton: {
+    padding: '0.6rem',
+    backgroundColor: '#28a745',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '5px',
+    cursor: 'pointer',
+  },
   error: {
     color: 'red',
+    marginTop: '1rem',
+    textAlign: 'center',
+  },
+  saveMessage: {
+    color: 'green',
     marginTop: '1rem',
     textAlign: 'center',
   },

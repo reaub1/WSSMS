@@ -116,3 +116,26 @@ app.post('/api/query', async (req, res) => {
     sql.close();
   }
 });
+
+app.post('/api/save-query', async (req, res) => {
+  const { query } = req.body;
+
+  if (!query) {
+    return res.status(400).json({ success: false, message: 'La requête est vide.' });
+  }
+
+  try {
+    await sql.connect(dbConfig);
+    await sql.query`INSERT INTO SavedQueries (query) VALUES (${query})`;
+    res.json({ success: true, message: 'Requête sauvegardée avec succès.' });
+  } catch (error) {
+    console.error('Erreur lors de la sauvegarde de la requête:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la sauvegarde de la requête.',
+      error: error.message,
+    });
+  } finally {
+    sql.close();
+  }
+});
