@@ -403,6 +403,55 @@ app.delete('/api/sql-users/:username', async (req, res) => {
   }
 });
 
+app.get('/api/save-database/:databaseName', async (req, res) => {
+  const { databaseName } = req.params;
+
+  if (!dynamicDbConfig) {
+    return res.status(401).json({ success: false, message: 'Non connecté à la base de données.' });
+  }
+
+  try {
+    const dbConfigWithDatabase = { ...dynamicDbConfig, database: databaseName };
+    await sql.connect(dbConfigWithDatabase);
+
+    const tables = await sql.query`SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'`;
+
+    let sqlDump = `-- Sauvegarde de la base de données '${databaseName}'\n\n`;
+
+    for (const table of tables.recordset) {
+      const tableName = table.TABLE_NAME;
+
+      const data = await sql.query(`SELECT * FROM ${tableName}`);
+      sqlDump += `-- Données de la table '${tableName}'\n`;
+      sqlDump += `INSERT INTO ${tableName} VALUES\n`;
+
+      data.recordset.forEach((row, index) => {
+        const values = Object.values(row)
+          .map((value) => (typeof value === 'string' ? `'${value.replace(/'/g, "''")}'` : value))
+          .join(', ');
+        sqlDump += `(${values})${index === data.recordset.length - 1 ? ';' : ','}\n`;
+      });
+
+      sqlDump += `\n`;
+    }
+
+    res.setHeader('Content-Type', 'application/octet-stream');
+    res.setHeader('Content-Disposition', `attachment; filename=${databaseName}.sql`);
+    res.send(sqlDump);
+  } catch (error) {
+    console.error('Erreur lors de la sauvegarde de la base de données:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la sauvegarde de la base de données.',
+      error: error.message,
+    });
+  } finally {
+    if (sql.connected) {
+      await sql.close();
+    }
+  }
+});
+
 app.listen(port, () => {
   console.log(`🚀 Serveur backend démarré : http://localhost:${port}`);
 });

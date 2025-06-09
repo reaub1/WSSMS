@@ -91,6 +91,25 @@ const DatabaseManager = () => {
     }
   };
 
+  const handleSaveDatabase = async (databaseName) => {
+    try {
+      const response = await axios.get(`http://localhost:3001/api/save-database/${databaseName}`, {
+        responseType: 'blob',
+      });
+  
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `${databaseName}.sql`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (err) {
+      console.error('Erreur lors de la sauvegarde de la base de données:', err);
+      alert('Erreur lors de la sauvegarde de la base de données.');
+    }
+  };
+
   const handleBack = () => {
     setSelectedDatabase(null);
   };
@@ -143,35 +162,16 @@ const DatabaseManager = () => {
                 >
                   Supprimer
                 </button>
+                <button
+                  style={styles.saveButton}
+                  onClick={() => handleSaveDatabase(db.name)}
+                >
+                  Sauvegarder
+                </button>
               </div>
             </li>
           ))}
         </ul>
-      </div>
-
-      {/* Section Utilisateurs SQL */}
-      <div style={styles.section}>
-        <h2 style={styles.title}>Utilisateurs SQL</h2>
-        <button
-          style={styles.addUserButton}
-          onClick={() => setShowAddUserForm(true)}
-        >
-          Ajouter un Utilisateur SQL
-        </button>
-        <ul style={styles.list}>
-          {users.map((user, index) => (
-            <li key={index} style={styles.listItem}>
-              <span>{user.name}</span>
-              <button
-                style={styles.deleteButton}
-                onClick={() => handleDeleteUser(user.name)}
-              >
-                Supprimer
-              </button>
-            </li>
-          ))}
-        </ul>
-        {showAddUserForm && <AddUserForm onClose={() => setShowAddUserForm(false)} />}
       </div>
     </div>
   );
@@ -247,6 +247,15 @@ const styles = {
   buttonGroup: {
     display: 'flex',
     gap: '0.5rem',
+  },
+  saveButton: {
+    padding: '0.3rem 0.6rem',
+    backgroundColor: '#28a745',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '5px',
+    cursor: 'pointer',
+    marginLeft: '0.5rem',
   },
 };
 
