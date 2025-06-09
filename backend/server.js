@@ -183,3 +183,30 @@ app.delete('/api/saved-queries/:id', async (req, res) => {
     });
   }
 });
+
+app.post('/api/sql-users', async (req, res) => {
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+    return res.status(400).json({ success: false, message: 'Nom d\'utilisateur et mot de passe requis.' });
+  }
+
+  try {
+    await sql.connect(dbConfig);
+
+    const createLoginQuery = `CREATE LOGIN [${username}] WITH PASSWORD = '${password}'`;
+    const createUserQuery = `CREATE USER [${username}] FOR LOGIN [${username}]`;
+
+    await sql.query(createLoginQuery);
+    await sql.query(createUserQuery);
+
+    res.json({ success: true, message: 'Utilisateur SQL ajouté avec succès.' });
+  } catch (error) {
+    console.error('Erreur lors de l\'ajout de l\'utilisateur SQL:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de l\'ajout de l\'utilisateur SQL.',
+      error: error.message,
+    });
+  }
+});

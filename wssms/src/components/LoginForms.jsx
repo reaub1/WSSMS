@@ -21,7 +21,6 @@ const Login = () => {
       console.log('Tentative de connexion avec les identifiants:', credentials);
       const response = await axios.post('http://localhost:3001/api/connect', credentials);
       if (response.data.success) {
-        alert('Connexion réussie !');
         console.log('Réponse du serveur:', response.data);
         setIsLoggedIn(true);
       } else {

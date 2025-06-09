@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import QueryExecutor from './QueryExecutor';
 import SavedQueries from './SavedQueries';
+import AddUserForm from './AddUserForm';
 
 const TablesList = () => {
   const [tables, setTables] = useState([]);
@@ -10,6 +11,7 @@ const TablesList = () => {
   const [selectedTable, setSelectedTable] = useState(null);
   const [queryToExecute, setQueryToExecute] = useState(null);
   const [isSavedQuery, setIsSavedQuery] = useState(false);
+  const [showAddUserForm, setShowAddUserForm] = useState(false);
 
   useEffect(() => {
     const fetchTables = async () => {
@@ -41,7 +43,7 @@ const TablesList = () => {
   if (queryToExecute) {
     return (
       <QueryExecutor
-        tableName={isSavedQuery ? null : selectedTable} 
+        tableName={isSavedQuery ? null : selectedTable}
         query={queryToExecute}
         onBack={() => {
           setQueryToExecute(null);
@@ -51,9 +53,19 @@ const TablesList = () => {
     );
   }
 
+  if (showAddUserForm) {
+    return <AddUserForm onClose={() => setShowAddUserForm(false)} />;
+  }
+
   return (
     <div style={styles.container}>
       <h2 style={styles.title}>Liste des Tables</h2>
+      <button
+        style={styles.addUserButton}
+        onClick={() => setShowAddUserForm(true)}
+      >
+        Ajouter un Utilisateur SQL
+      </button>
       <ul style={styles.list}>
         {tables.map((table, index) => (
           <li key={index} style={styles.listItem}>
@@ -62,7 +74,7 @@ const TablesList = () => {
               style={styles.button}
               onClick={() => {
                 setSelectedTable(table.TABLE_NAME);
-                setQueryToExecute(`SELECT * FROM ${table.TABLE_NAME}`); 
+                setQueryToExecute(`SELECT * FROM ${table.TABLE_NAME}`);
                 setIsSavedQuery(false);
               }}
             >
@@ -114,6 +126,15 @@ const styles = {
     border: 'none',
     borderRadius: '5px',
     cursor: 'pointer',
+  },
+  addUserButton: {
+    padding: '0.5rem 1rem',
+    backgroundColor: '#0078d4',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '5px',
+    cursor: 'pointer',
+    marginBottom: '1rem',
   },
 };
 
