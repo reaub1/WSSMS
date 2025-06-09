@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import TablesList from './TablesList';
 
 const DatabaseManager = () => {
   const [databases, setDatabases] = useState([]);
+  const [selectedDatabase, setSelectedDatabase] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -25,6 +27,10 @@ const DatabaseManager = () => {
     fetchDatabases();
   }, []);
 
+  if (selectedDatabase) {
+    return <TablesList database={selectedDatabase} />;
+  }
+
   if (loading) {
     return <p>Chargement des bases de données...</p>;
   }
@@ -40,6 +46,12 @@ const DatabaseManager = () => {
         {databases.map((db, index) => (
           <li key={index} style={styles.listItem}>
             {db.name}
+            <button
+              style={styles.button}
+              onClick={() => setSelectedDatabase(db.name)}
+            >
+              Ouvrir
+            </button>
           </li>
         ))}
       </ul>
@@ -69,6 +81,17 @@ const styles = {
     padding: '0.5rem',
     borderBottom: '1px solid #444',
     color: '#fff',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  button: {
+    padding: '0.3rem 0.6rem',
+    backgroundColor: '#0078d4',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '5px',
+    cursor: 'pointer',
   },
 };
 

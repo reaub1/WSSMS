@@ -5,7 +5,7 @@ import SavedQueries from './SavedQueries';
 import AddUserForm from './AddUserForm';
 import Login from './LoginForms';
 
-const TablesList = () => {
+const TablesList = ({ database }) => {
   const [tables, setTables] = useState([]);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -18,8 +18,15 @@ const TablesList = () => {
 
   useEffect(() => {
     const fetchTables = async () => {
+
+      if (!database) {
+        setError('Le nom de la base de données est requis.');
+        setLoading(false);
+        return;
+      }
+
       try {
-        const response = await axios.get('http://localhost:3001/api/tables');
+        const response = await axios.get(`http://localhost:3001/api/tables?database=${database}`);
         if (response.data.success) {
           setTables(response.data.tables);
         } else {

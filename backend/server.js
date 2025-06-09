@@ -20,7 +20,7 @@ app.post('/api/connect', async (req, res) => {
     user: username,
     password: password,
     server: 'sqlserver',
-    database: 'master',
+    database: 'tets',
     options: {
       encrypt: true,
       trustServerCertificate: true,
@@ -69,6 +69,7 @@ app.get('/api/databases', async (req, res) => {
     await sql.connect(dynamicDbConfig);
     const result = await sql.query`SELECT name FROM sys.databases WHERE name NOT IN ('tempdb', 'model', 'msdb')`;
     res.json({ success: true, databases: result.recordset });
+    sql.close();
   } catch (error) {
     console.error('Erreur lors de la récupération des bases de données:', error);
     res.status(500).json({
@@ -84,21 +85,36 @@ app.get('/api/databases', async (req, res) => {
 });
 
 app.get('/api/tables', async (req, res) => {
+  const { database } = req.query;
+
   if (!dynamicDbConfig) {
     return res.status(401).json({ success: false, message: 'Non connecté à la base de données.' });
   }
 
+  if (!database) {
+    return res.status(400).json({ success: false, message: 'Le nom de la base de données est requis.' });
+  }
+
   try {
-    console.log('Configuration de la base de données:', dynamicDbConfig);
+    dynamicDbConfig.database = database;
+    console.log('Configuration mise à jour pour la base de données :', dynamicDbConfig);
+
+    if (sql.connected) {
+      console.log('Fermeture de la connexion existante...');
+      await sql.close();
+    }
+
     await sql.connect(dynamicDbConfig);
+
     const result = await sql.query`SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'`;
     res.json({ success: true, tables: result.recordset });
+    console.log('Tables récupérées avec succès:', result.recordset);
     sql.close();
   } catch (error) {
     console.error('Erreur lors de la récupération des tables:', error);
     res.status(500).json({
       success: false,
-      message: '❌ Erreur lors de la récupération des tables.',
+      message: 'Erreur lors de la récupération des tables.',
       error: error.message,
     });
   } finally {
