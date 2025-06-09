@@ -5,10 +5,31 @@ const QueryExecutor = ({ query: initialQuery, tableName, onBack }) => {
   const [query, setQuery] = useState(
     initialQuery || (tableName ? `SELECT * FROM ${tableName}` : '')
   );
+  const [queryType, setQueryType] = useState('SELECT');
   const [results, setResults] = useState([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
+
+  const handleQueryTypeChange = (type) => {
+    setQueryType(type);
+    switch (type) {
+      case 'SELECT':
+        setQuery(`SELECT * FROM ${tableName || 'table_name'}`);
+        break;
+      case 'UPDATE':
+        setQuery(`UPDATE ${tableName || 'table_name'} SET column_name = value WHERE condition`);
+        break;
+      case 'INSERT':
+        setQuery(`INSERT INTO ${tableName || 'table_name'} (column1, column2) VALUES (value1, value2)`);
+        break;
+      case 'DELETE':
+        setQuery(`DELETE FROM ${tableName || 'table_name'} WHERE condition`);
+        break;
+      default:
+        setQuery('');
+    }
+  };
 
   const handleExecute = async () => {
     setError('');
@@ -50,6 +71,20 @@ const QueryExecutor = ({ query: initialQuery, tableName, onBack }) => {
       <h2 style={styles.title}>
         {tableName ? `Exécuter une Requête sur ${tableName}` : 'Exécuter une Requête'}
       </h2>
+      <div style={styles.queryTypeContainer}>
+        <label htmlFor="queryType" style={styles.label}>Type de Requête :</label>
+        <select
+          id="queryType"
+          value={queryType}
+          onChange={(e) => handleQueryTypeChange(e.target.value)}
+          style={styles.select}
+        >
+          <option value="SELECT">SELECT</option>
+          <option value="UPDATE">UPDATE</option>
+          <option value="INSERT">INSERT</option>
+          <option value="DELETE">DELETE</option>
+        </select>
+      </div>
       <textarea
         value={query}
         onChange={(e) => setQuery(e.target.value)}
@@ -112,6 +147,23 @@ const styles = {
   title: {
     textAlign: 'center',
     marginBottom: '1rem',
+  },
+  queryTypeContainer: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    marginBottom: '1rem',
+  },
+  label: {
+    marginRight: '0.5rem',
+    color: '#fff',
+  },
+  select: {
+    padding: '0.5rem',
+    borderRadius: '5px',
+    border: '1px solid #444',
+    backgroundColor: '#1e1e2f',
+    color: '#fff',
   },
   textarea: {
     width: '100%',
