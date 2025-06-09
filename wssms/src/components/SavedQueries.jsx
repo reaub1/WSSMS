@@ -25,6 +25,15 @@ const SavedQueries = ({ onExecute }) => {
     fetchSavedQueries();
   }, []);
 
+  const handleDelete = async (queryId) => {
+    try {
+      await axios.delete(`http://localhost:3001/api/saved-queries/${queryId}`);
+      setQueries(queries.filter((query) => query.id !== queryId)); 
+    } catch (err) {
+      alert('Erreur lors de la suppression de la requête.');
+    }
+  };
+
   if (loading) {
     return <p>Chargement des requêtes sauvegardées...</p>;
   }
@@ -45,6 +54,12 @@ const SavedQueries = ({ onExecute }) => {
               onClick={() => onExecute(query.query)}
             >
               Exécuter
+            </button>
+            <button
+              style={styles.deleteButton}
+              onClick={() => handleDelete(query.id)}
+            >
+              Supprimer
             </button>
           </li>
         ))}
@@ -88,6 +103,15 @@ const styles = {
   button: {
     padding: '0.3rem 0.6rem',
     backgroundColor: '#0078d4',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '5px',
+    cursor: 'pointer',
+    marginRight: '0.5rem',
+  },
+  deleteButton: {
+    padding: '0.3rem 0.6rem',
+    backgroundColor: '#d9534f',
     color: '#fff',
     border: 'none',
     borderRadius: '5px',

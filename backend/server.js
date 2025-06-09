@@ -151,7 +151,7 @@ app.post('/api/save-query', async (req, res) => {
 app.get('/api/saved-queries', async (req, res) => {
   try {
     await sql.connect(dbConfig);
-    const result = await sql.query`SELECT TOP 5 query, created_at FROM SavedQueries ORDER BY created_at DESC`;
+    const result = await sql.query`SELECT TOP 5 id, query, created_at FROM SavedQueries ORDER BY created_at DESC`;
     res.json({ success: true, queries: result.recordset });
   } catch (error) {
     console.error('Erreur lors de la récupération des requêtes sauvegardées:', error);
@@ -164,5 +164,22 @@ app.get('/api/saved-queries', async (req, res) => {
     if (sql.connected) {
       await sql.close();
     }
+  }
+});
+
+app.delete('/api/saved-queries/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await sql.connect(dbConfig);
+    await sql.query`DELETE FROM SavedQueries WHERE id = ${id}`;
+    res.json({ success: true, message: 'Requête supprimée avec succès.' });
+  } catch (error) {
+    console.error('Erreur lors de la suppression de la requête:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la suppression de la requête.',
+      error: error.message,
+    });
   }
 });
