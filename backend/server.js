@@ -31,7 +31,9 @@ app.get('/api/test-connection', async (req, res) => {
       error: error.message
     });
   } finally {
-    sql.close();
+    if (sql.connected) {
+      await sql.close();
+    }
   }
 });
 
@@ -91,10 +93,12 @@ app.get('/api/tables', async (req, res) => {
     res.status(500).json({
       success: false,
       message: '❌ Erreur lors de la récupération des tables.',
-      error: error.message
+      error: error.message,
     });
   } finally {
-    sql.close();
+    if (sql.connected) {
+      await sql.close();
+    }
   }
 });
 
@@ -113,7 +117,9 @@ app.post('/api/query', async (req, res) => {
       error: error.message,
     });
   } finally {
-    sql.close();
+    if (sql.connected) {
+      await sql.close();
+    }
   }
 });
 
@@ -136,6 +142,27 @@ app.post('/api/save-query', async (req, res) => {
       error: error.message,
     });
   } finally {
-    sql.close();
+    if (sql.connected) {
+      await sql.close();
+    }
+  }
+});
+
+app.get('/api/saved-queries', async (req, res) => {
+  try {
+    await sql.connect(dbConfig);
+    const result = await sql.query`SELECT TOP 5 query, created_at FROM SavedQueries ORDER BY created_at DESC`;
+    res.json({ success: true, queries: result.recordset });
+  } catch (error) {
+    console.error('Erreur lors de la récupération des requêtes sauvegardées:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Erreur lors de la récupération des requêtes sauvegardées.',
+      error: error.message,
+    });
+  } finally {
+    if (sql.connected) {
+      await sql.close();
+    }
   }
 });

@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
-const QueryExecutor = ({ tableName, onBack }) => {
-  const [query, setQuery] = useState(`SELECT * FROM ${tableName}`);
+const QueryExecutor = ({ query: initialQuery, tableName, onBack }) => {
+  const [query, setQuery] = useState(
+    initialQuery || (tableName ? `SELECT * FROM ${tableName}` : '')
+  );
   const [results, setResults] = useState([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -45,7 +47,9 @@ const QueryExecutor = ({ tableName, onBack }) => {
       <button onClick={onBack} style={styles.backButton}>
         ⬅ Retour
       </button>
-      <h2 style={styles.title}>Exécuter une Requête sur {tableName}</h2>
+      <h2 style={styles.title}>
+        {tableName ? `Exécuter une Requête sur ${tableName}` : 'Exécuter une Requête'}
+      </h2>
       <textarea
         value={query}
         onChange={(e) => setQuery(e.target.value)}
@@ -53,11 +57,11 @@ const QueryExecutor = ({ tableName, onBack }) => {
         style={styles.textarea}
       />
       <div style={styles.buttonContainer}>
-        <button onClick={handleExecute} style={styles.button} disabled={loading}>
-          {loading ? 'Exécution...' : 'Exécuter'}
-        </button>
         <button onClick={handleSave} style={styles.saveButton}>
           Sauvegarder
+        </button>
+        <button onClick={handleExecute} style={styles.button} disabled={loading}>
+          {loading ? 'Exécution...' : 'Exécuter'}
         </button>
       </div>
       {error && <p style={styles.error}>{error}</p>}
