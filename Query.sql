@@ -1,5 +1,12 @@
--- Insert
 
+-- Create table
+CREATE TABLE master.dbo.USERS (
+    ID INT IDENTITY(1,1) PRIMARY KEY,
+    Nom NVARCHAR(50) NOT NULL,
+    Prénom NVARCHAR(50) NOT NULL
+);
+
+-- Insert
 INSERT INTO master.dbo.USERS (Nom, Prénom) VALUES ('Dupont', 'Jean');
 INSERT INTO master.dbo.USERS (Nom, Prénom) VALUES ('Martin', 'Marie');
 INSERT INTO master.dbo.USERS (Nom, Prénom) VALUES ('Bernard', 'Pierre');

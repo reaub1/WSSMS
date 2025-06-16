@@ -20,7 +20,7 @@ app.post('/api/connect', async (req, res) => {
     user: username,
     password: password,
     server: 'sqlserver',
-    database: 'tets',
+    database: 'master',
     options: {
       encrypt: true,
       trustServerCertificate: true,
