@@ -195,6 +195,8 @@ app.get('/api/tables', async (req, res) => {
 app.post('/api/query', async (req, res) => {
   const { query } = req.body;
 
+  console.log('Requête reçue:', query);
+
   if (!dynamicDbConfig) {
     return res.status(401).json({ success: false, message: 'Non connecté à la base de données.' });
   }

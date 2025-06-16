@@ -101,7 +101,7 @@ const QueryExecutor = ({ query: initialQuery, tableName, onBack }) => {
       </div>
       {error && <p style={styles.error}>{error}</p>}
       {saveMessage && <p style={styles.saveMessage}>{saveMessage}</p>}
-      {results.length > 0 && (
+      {results && results.length > 0 && (
         <table style={styles.table}>
           <thead>
             <tr>
