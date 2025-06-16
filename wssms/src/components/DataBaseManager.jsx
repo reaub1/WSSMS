@@ -173,6 +173,31 @@ const DatabaseManager = () => {
           ))}
         </ul>
       </div>
+  
+      {/* Section Utilisateurs SQL */}
+      <div style={styles.section}>
+        <h2 style={styles.title}>Utilisateurs SQL</h2>
+        <button
+          style={styles.addUserButton}
+          onClick={() => setShowAddUserForm(true)}
+        >
+          Ajouter un Utilisateur SQL
+        </button>
+        <ul style={styles.list}>
+          {users.map((user, index) => (
+            <li key={index} style={styles.listItem}>
+              <span>{user.name}</span>
+              <button
+                style={styles.deleteButton}
+                onClick={() => handleDeleteUser(user.name)}
+              >
+                Supprimer
+              </button>
+            </li>
+          ))}
+        </ul>
+        {showAddUserForm && <AddUserForm onClose={() => setShowAddUserForm(false)} />}
+      </div>
     </div>
   );
 };
